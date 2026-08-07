@@ -1,12 +1,8 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 -> 1.0.1
+Version change: 1.0.1 -> 1.0.2
 Modified principles:
-- I. Single-Page Simplicity -> I. Single-Page Vanilla Client
-- II. Data Integrity -> II. Local Storage Persistence
-- III. Immediate Transparency -> III. Simple, Readable Code
-- IV. Minimal Dependencies -> IV. Small Single-Purpose Functions
-- V. Maintainable Clarity -> V. Validation First, Working First
+- V. Validation First, Working First -> V. Validation First, Working First
 Added sections: none
 Removed sections: none
 Deferred items: none
@@ -29,12 +25,13 @@ Code MUST stay simple and readable rather than clever. The project is a learning
 Functions MUST be small and single-purpose. Each function MUST perform one clearly named job, and higher-level behavior MUST be composed from those simple building blocks.
 
 ### V. Validation First, Working First
-Basic input validation MUST be enforced: no empty fields, no negative amounts, a selected category, and a valid date. Working code that satisfies requirements MUST be prioritized over premature optimization.
+Basic input validation MUST be enforced: no empty fields, no negative amounts, a selected category, and a valid date. Invalid input MUST be rejected before submission, and errors MUST be surfaced clearly to the user in the form. Working code that satisfies requirements MUST be prioritized over premature optimization.
 
 ## Additional Constraints
 The application MUST support the fixed category list: Groceries, Fuel, Travel, Eating Out, Utilities, and Other.
 Expense state MUST persist to browser localStorage; no backend storage is allowed.
 The app MUST be runnable locally using a simple static server such as Live Server.
+The app MUST provide immediate, user-facing feedback when validation fails, without requiring a backend or advanced UI framework.
 
 ## Development Workflow
 Requirement compliance MUST be verified for every change. Each update MUST reference the documented requirements and explain how it preserves the core principles.
@@ -51,4 +48,4 @@ Compliance review expectation:
 - Every change MUST cite the affected principle(s).
 - Reviews MUST verify that updates preserve the single-page, client-side, and validation requirements.
 
-**Version**: 1.0.1 | **Ratified**: 2026-08-07 | **Last Amended**: 2026-08-07
+**Version**: 1.0.2 | **Ratified**: 2026-08-07 | **Last Amended**: 2026-08-07
