@@ -99,3 +99,4 @@ The report should show:
 ## 8. Page Layout Requirement
 
 The input form and the report output must both be displayed on the same HTML page for the current version of the application.
+
