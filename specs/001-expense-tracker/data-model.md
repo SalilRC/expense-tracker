@@ -6,9 +6,12 @@ An expense is a single spending record entered by the user.
 
 ### Fields
 
+- **id**: string
+  - A unique identifier generated when the expense is created.
+  - A timestamp-based string is suitable for this version.
 - **date**: string
   - Represents the date the expense occurred.
-  - Must be present and valid.
+  - Must be present and stored in ISO format (`YYYY-MM-DD`) to match an HTML date input value.
 - **description**: string
   - Short explanation of the expense.
   - Must be non-empty.
@@ -16,13 +19,15 @@ An expense is a single spending record entered by the user.
   - Must be one of the fixed categories.
 - **amount**: number
   - Must be a positive number.
+  - Must be stored and displayed with exactly two decimal places for currency precision.
 
 ### Validation Rules
 
-- A date is required.
+- An id is generated automatically when the expense is created.
+- A date is required and must use ISO format (`YYYY-MM-DD`).
 - A description is required.
 - Category must match one of the allowed values.
-- Amount must be greater than zero.
+- Amount must be greater than zero and formatted to two decimal places.
 
 ## Entity: Expense Collection
 
