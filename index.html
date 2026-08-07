@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <h1>Expense Tracker</h1>
+        <p>Capture spending, review totals, and keep track of your budget.</p>
+      </header>
+
+      <section class="panel" aria-labelledby="expense-form-title">
+        <h2 id="expense-form-title">Add an expense</h2>
+        <form id="expense-form" novalidate>
+          <div class="form-grid">
+            <label class="field">
+              <span>Date</span>
+              <input id="expense-date" name="date" type="date" required />
+            </label>
+
+            <label class="field">
+              <span>Description</span>
+              <input id="expense-description" name="description" type="text" placeholder="What did you spend on?" required />
+            </label>
+
+            <label class="field">
+              <span>Category</span>
+              <select id="expense-category" name="category" required></select>
+            </label>
+
+            <label class="field">
+              <span>Amount</span>
+              <input id="expense-amount" name="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />
+            </label>
+          </div>
+
+          <button type="submit">Add expense</button>
+          <p id="form-message" class="form-message" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="report-title">
+        <h2 id="report-title">Report</h2>
+        <div class="summary-card">
+          <h3>Summary</h3>
+          <p id="summary-copy">Add your first expense to start building your report.</p>
+        </div>
+
+        <div class="report-block">
+          <h3>Category totals</h3>
+          <ul id="category-totals"></ul>
+        </div>
+
+        <div class="report-block">
+          <h3>Recent expenses</h3>
+          <ul id="expense-list"></ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

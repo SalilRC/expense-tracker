@@ -12,9 +12,9 @@
 
 **Purpose**: Create the static app structure and wire the main HTML/CSS/JS files.
 
-- [ ] T001 Create the main app structure in index.html with a form section and a report section
-- [ ] T002 Create the base styling in style.css for layout, form controls, validation feedback, and report presentation
-- [ ] T003 [P] Create the app shell in app.js with empty state management and DOM element references
+- [x] T001 Create the main app structure in index.html with a form section and a report section
+- [x] T002 Create the base styling in style.css for layout, form controls, validation feedback, and report presentation
+- [x] T003 [P] Create the app shell in app.js with empty state management and DOM element references
 
 ---
 
@@ -22,10 +22,10 @@
 
 **Purpose**: Implement the shared storage and state logic required by all user stories.
 
-- [ ] T004 Implement localStorage persistence helpers in app.js for loading and saving expenses as a JSON array
-- [ ] T005 Implement expense validation logic in app.js for date, description, category, and amount, enforcing that amount is a positive number with exactly two decimal places and that date follows ISO format (YYYY-MM-DD) matching an HTML date input
-- [ ] T006 Implement report calculation logic in app.js to aggregate totals by category and compute the grand total
-- [ ] T007 Implement app initialization in app.js to load existing expenses, render the report, and bind form submission logic
+- [x] T004 Implement localStorage persistence helpers in app.js for loading and saving expenses as a JSON array
+- [x] T005 Implement expense validation logic in app.js for date, description, category, and amount, enforcing that amount is a positive number with exactly two decimal places and that date follows ISO format (YYYY-MM-DD) matching an HTML date input
+- [x] T006 Implement report calculation logic in app.js to aggregate totals by category and compute the grand total
+- [x] T007 Implement app initialization in app.js to load existing expenses, render the report, and bind form submission logic
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
