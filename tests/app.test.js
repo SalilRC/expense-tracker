@@ -8,12 +8,21 @@ function createElement() {
     innerHTML: "",
     textContent: "",
     value: "",
+    hidden: false,
+    id: "",
+    className: "",
+    dataset: {},
     children: [],
     appendChild(child) {
       this.children.push(child);
       return child;
     },
+    addEventListener() {},
+    focus() {},
     reset() {},
+    closest() {
+      return null;
+    },
   };
 }
 
@@ -65,6 +74,7 @@ function createContext() {
     Math,
     Array,
     Object,
+    confirm: () => true,
   };
 
   context.window = context;
@@ -113,5 +123,35 @@ const storedExpense = vm.runInContext("state.expenses[0]", context, { filename: 
 
 assert.equal(typeof storedExpense.amount, "number", "The stored expense should use a numeric amount after validation");
 assert.equal(storedExpense.amount, 25, "The amount should be converted to a number after validation succeeds");
+
+vm.runInContext(`
+  state.expenses = [
+    { id: "expense-1", date: "2026-08-01", description: "Groceries", category: "Groceries", amount: 25 },
+    { id: "expense-2", date: "2026-08-02", description: "Train ticket", category: "Travel", amount: 40 }
+  ];
+  renderApp(elements);
+`, context, { filename: appPath });
+
+context.confirm = () => true;
+vm.runInContext("deleteExpense('expense-1')", context, { filename: appPath });
+assert.equal(vm.runInContext("state.expenses.length", context, { filename: appPath }), 1, "Deleting an expense should remove it from the collection");
+assert.equal(vm.runInContext("state.expenses[0].description", context, { filename: appPath }), "Train ticket", "The remaining expense should stay in the list");
+
+context.confirm = () => false;
+vm.runInContext("state.expenses = [\n  { id: 'expense-1', date: '2026-08-01', description: 'Groceries', category: 'Groceries', amount: 25 },\n  { id: 'expense-2', date: '2026-08-02', description: 'Train ticket', category: 'Travel', amount: 40 }\n];", context, { filename: appPath });
+vm.runInContext("deleteExpense('expense-1')", context, { filename: appPath });
+assert.equal(vm.runInContext("state.expenses.length", context, { filename: appPath }), 2, "Cancelling the delete confirmation should leave the expense in the list");
+
+context.confirm = () => true;
+vm.runInContext("startEditingExpense('expense-2')", context, { filename: appPath });
+assert.equal(elements.dateInput.value, "2026-08-02", "Editing should populate the form with the selected expense");
+
+elements.descriptionInput.value = "Train ticket updated";
+elements.categorySelect.value = "Travel";
+elements.amountInput.value = "45.50";
+vm.runInContext("handleFormSubmit({ preventDefault() {} })", context, { filename: appPath });
+const updatedExpense = vm.runInContext("state.expenses.find((entry) => entry.id === 'expense-2')", context, { filename: appPath });
+assert.equal(updatedExpense.description, "Train ticket updated", "Editing should update the stored expense details");
+assert.equal(updatedExpense.amount, 45.5, "Edited amounts should be normalized to a numeric value with two decimal places");
 
 console.log("Regression test passed");

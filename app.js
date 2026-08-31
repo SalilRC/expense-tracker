@@ -10,6 +10,7 @@ const CATEGORY_OPTIONS = [
 
 const state = {
   expenses: [],
+  editingExpenseId: null,
 };
 
 function getElements() {
@@ -20,6 +21,9 @@ function getElements() {
     categorySelect: document.getElementById("expense-category"),
     amountInput: document.getElementById("expense-amount"),
     formMessage: document.getElementById("form-message"),
+    formSubmitButton: document.getElementById("expense-submit"),
+    formCancelButton: document.getElementById("expense-cancel"),
+    formTitle: document.getElementById("expense-form-title"),
     summaryCopy: document.getElementById("summary-copy"),
     categoryTotals: document.getElementById("category-totals"),
     expenseList: document.getElementById("expense-list"),
@@ -191,9 +195,109 @@ function renderApp(elements) {
   elements.expenseList.innerHTML = "";
   state.expenses.forEach((expense) => {
     const listItem = document.createElement("li");
-    listItem.textContent = `${formatDate(expense.date)} • ${expense.description} • ${expense.category} • ${formatCurrency(expense.amount)}`;
+    listItem.className = "expense-item";
+
+    const details = document.createElement("span");
+    details.textContent = `${formatDate(expense.date)} • ${expense.description} • ${expense.category} • ${formatCurrency(expense.amount)}`;
+    listItem.appendChild(details);
+
+    const actions = document.createElement("div");
+    actions.className = "expense-actions";
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.textContent = "Edit";
+    editButton.className = "expense-action action-edit";
+    editButton.dataset.action = "edit";
+    editButton.dataset.expenseId = expense.id;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.textContent = "Delete";
+    deleteButton.className = "expense-action action-delete";
+    deleteButton.dataset.action = "delete";
+    deleteButton.dataset.expenseId = expense.id;
+
+    actions.appendChild(editButton);
+    actions.appendChild(deleteButton);
+    listItem.appendChild(actions);
     elements.expenseList.appendChild(listItem);
   });
+}
+
+function resetExpenseForm(elements) {
+  elements.form.reset();
+  elements.categorySelect.value = "";
+  elements.formMessage.textContent = "";
+  state.editingExpenseId = null;
+
+  if (elements.formSubmitButton) {
+    elements.formSubmitButton.textContent = "Add expense";
+  }
+
+  if (elements.formCancelButton) {
+    elements.formCancelButton.hidden = true;
+  }
+
+  if (elements.formTitle) {
+    elements.formTitle.textContent = "Add an expense";
+  }
+}
+
+function startEditingExpense(expenseId) {
+  const elements = getElements();
+  const expense = state.expenses.find((entry) => entry.id === expenseId);
+
+  if (!expense) {
+    return;
+  }
+
+  state.editingExpenseId = expenseId;
+  elements.dateInput.value = expense.date;
+  elements.descriptionInput.value = expense.description;
+  elements.categorySelect.value = expense.category;
+  elements.amountInput.value = Number(expense.amount).toFixed(2);
+  elements.formMessage.textContent = "Update the fields and save your changes.";
+
+  if (elements.formSubmitButton) {
+    elements.formSubmitButton.textContent = "Save changes";
+  }
+
+  if (elements.formCancelButton) {
+    elements.formCancelButton.hidden = false;
+  }
+
+  if (elements.formTitle) {
+    elements.formTitle.textContent = "Edit expense";
+  }
+
+  elements.dateInput.focus();
+}
+
+function deleteExpense(expenseId) {
+  const elements = getElements();
+  const expenseIndex = state.expenses.findIndex((expense) => expense.id === expenseId);
+
+  if (expenseIndex === -1) {
+    return;
+  }
+
+  const confirmed = typeof window !== "undefined" ? window.confirm(`Delete this expense? This action cannot be undone.`) : true;
+
+  if (!confirmed) {
+    elements.formMessage.textContent = "Delete cancelled.";
+    return;
+  }
+
+  state.expenses.splice(expenseIndex, 1);
+  saveExpenses();
+
+  if (state.editingExpenseId === expenseId) {
+    resetExpenseForm(elements);
+  }
+
+  elements.formMessage.textContent = "Expense deleted.";
+  renderApp(elements);
 }
 
 function createExpenseFromForm(elements) {
@@ -223,6 +327,24 @@ function handleFormSubmit(event) {
     amount: normalizedAmount,
   };
 
+  if (state.editingExpenseId) {
+    const expenseIndex = state.expenses.findIndex((entry) => entry.id === state.editingExpenseId);
+
+    if (expenseIndex !== -1) {
+      state.expenses[expenseIndex] = {
+        ...state.expenses[expenseIndex],
+        ...normalizedExpense,
+        id: state.editingExpenseId,
+      };
+    }
+
+    saveExpenses();
+    elements.formMessage.textContent = "Expense updated successfully.";
+    resetExpenseForm(elements);
+    renderApp(elements);
+    return;
+  }
+
   state.expenses.push(normalizedExpense);
   saveExpenses();
   elements.form.reset();
@@ -231,11 +353,42 @@ function handleFormSubmit(event) {
   renderApp(elements);
 }
 
+function handleExpenseListClick(event) {
+  const elements = getElements();
+  const targetButton = event.target && event.target.closest ? event.target.closest("button[data-action]") : null;
+
+  if (!targetButton) {
+    return;
+  }
+
+  const action = targetButton.dataset.action;
+  const expenseId = targetButton.dataset.expenseId;
+
+  if (action === "edit") {
+    startEditingExpense(expenseId);
+    return;
+  }
+
+  if (action === "delete") {
+    deleteExpense(expenseId);
+  }
+
+  if (action === "cancel") {
+    resetExpenseForm(elements);
+  }
+}
+
 function initializeApp() {
   const elements = getElements();
   state.expenses = loadExpenses();
   populateCategoryOptions(elements.categorySelect);
   elements.form.addEventListener("submit", handleFormSubmit);
+  elements.expenseList.addEventListener("click", handleExpenseListClick);
+
+  if (elements.formCancelButton) {
+    elements.formCancelButton.addEventListener("click", () => resetExpenseForm(elements));
+  }
+
   renderApp(elements);
 }
 

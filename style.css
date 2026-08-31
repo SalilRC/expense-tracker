@@ -84,6 +84,22 @@ button:hover {
   background: #1d4ed8;
 }
 
+.button-secondary {
+  background: #e5e7eb;
+  color: var(--text);
+}
+
+.button-secondary:hover {
+  background: #d1d5db;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .form-message {
   min-height: 1.25rem;
   color: var(--muted);
@@ -106,6 +122,33 @@ button:hover {
 ul {
   margin: 0;
   padding-left: 1rem;
+}
+
+.expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.expense-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.expense-action {
+  margin-top: 0;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.action-delete {
+  background: #dc2626;
+}
+
+.action-delete:hover {
+  background: #b91c1c;
 }
 
 @media (max-width: 700px) {
