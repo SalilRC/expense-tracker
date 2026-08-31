@@ -63,6 +63,7 @@ The following validation rules must apply:
 - Description is required and should not be empty.
 - Category must be selected from the fixed list.
 - Amount is required and must be a positive number.
+- The app should accept common shorthand values such as `26` or `25.1` and automatically normalize them to two decimal places for storage and display (for example, `26.00` and `25.10`).
 - The form should prevent submission if validation fails.
 - Invalid fields should be clearly indicated to the user.
 

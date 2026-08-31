@@ -87,11 +87,24 @@ function isValidIsoDate(value) {
   );
 }
 
+function normalizeAmountInput(rawValue) {
+  if (rawValue === null || rawValue === undefined || rawValue === "") {
+    return null;
+  }
+
+  const numericValue = Number(String(rawValue).trim());
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    return null;
+  }
+
+  return Number(numericValue.toFixed(2));
+}
+
 function validateExpense(expense) {
   const errors = [];
   const trimmedDescription = String(expense.description || "").trim();
   const trimmedDate = String(expense.date || "").trim();
-  const trimmedAmount = String(expense.amount || "").trim();
+  const normalizedAmount = normalizeAmountInput(expense.amount);
 
   if (!trimmedDate) {
     errors.push("Date is required.");
@@ -107,13 +120,8 @@ function validateExpense(expense) {
     errors.push("Please choose a valid category.");
   }
 
-  if (!/^\d+(\.\d{2})$/.test(trimmedAmount)) {
-    errors.push("Amount must be a positive number with exactly two decimal places.");
-  } else {
-    const parsedAmount = Number(trimmedAmount);
-    if (parsedAmount <= 0) {
-      errors.push("Amount must be greater than zero.");
-    }
+  if (normalizedAmount === null) {
+    errors.push("Amount must be a positive number; values are automatically stored with 2 decimal places.");
   }
 
   return {
@@ -189,14 +197,12 @@ function renderApp(elements) {
 }
 
 function createExpenseFromForm(elements) {
-  const amountValue = elements.amountInput.value.trim();
-
   return {
     id: `expense-${Date.now()}`,
     date: elements.dateInput.value,
     description: elements.descriptionInput.value.trim(),
     category: elements.categorySelect.value,
-    amount: amountValue,
+    amount: elements.amountInput.value,
   };
 }
 
@@ -211,9 +217,10 @@ function handleFormSubmit(event) {
     return;
   }
 
+  const normalizedAmount = normalizeAmountInput(expense.amount);
   const normalizedExpense = {
     ...expense,
-    amount: Number(expense.amount),
+    amount: normalizedAmount,
   };
 
   state.expenses.push(normalizedExpense);

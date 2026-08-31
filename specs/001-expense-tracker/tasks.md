@@ -23,7 +23,7 @@
 **Purpose**: Implement the shared storage and state logic required by all user stories.
 
 - [x] T004 Implement localStorage persistence helpers in app.js for loading and saving expenses as a JSON array
-- [x] T005 Implement expense validation logic in app.js for date, description, category, and amount, enforcing that amount is a positive number with exactly two decimal places and that date follows ISO format (YYYY-MM-DD) matching an HTML date input
+- [x] T005 Implement expense validation logic in app.js for date, description, category, and amount, accepting shorthand user entry like `26` or `25.1`, normalizing amounts to two decimal places for storage, and enforcing ISO date format (YYYY-MM-DD) matching an HTML date input
 - [x] T006 Implement report calculation logic in app.js to aggregate totals by category and compute the grand total
 - [x] T007 Implement app initialization in app.js to load existing expenses, render the report, and bind form submission logic
 
