@@ -39,9 +39,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [P] [US1] Add form submission handling in app.js to create an expense object with id, date, description, category, and amount
-- [ ] T009 [US1] Add success handling in app.js to reset the form, save the updated expenses, and re-render the report
-- [ ] T010 [US1] Add user-facing validation feedback in app.js and index.html for invalid submissions
+- [x] T008 [P] [US1] Add form submission handling in app.js to create an expense object with id, date, description, category, and amount
+- [x] T009 [US1] Add success handling in app.js to reset the form, save the updated expenses, and re-render the report
+- [x] T010 [US1] Add user-facing validation feedback in app.js and index.html for invalid submissions
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently.
 
@@ -55,9 +55,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 [P] [US2] Render the report section in index.html with category totals and a grand total summary
-- [ ] T012 [US2] Render the current expense list in the report area with formatted date, description, category, and amount
-- [ ] T013 [US2] Ensure totals are recalculated and displayed immediately after each successful submission
+- [x] T011 [P] [US2] Render the report section in index.html with category totals and a grand total summary
+- [x] T012 [US2] Render the current expense list in the report area with formatted date, description, category, and amount
+- [x] T013 [US2] Ensure totals are recalculated and displayed immediately after each successful submission
 
 **Checkpoint**: At this point, User Stories 1 and 2 should both work independently.
 
@@ -71,9 +71,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T014 [P] [US3] Populate the category select in index.html with the fixed categories Groceries, Fuel, Travel, Eating Out, Utilities, and Other
-- [ ] T015 [US3] Add accessible labels and clear form messaging in index.html and style.css for validation and empty states
-- [ ] T016 [US3] Preserve saved expenses after a page refresh by relying on the localStorage-backed initialization flow
+- [x] T014 [P] [US3] Populate the category select in index.html with the fixed categories Groceries, Fuel, Travel, Eating Out, Utilities, and Other
+- [x] T015 [US3] Add accessible labels and clear form messaging in index.html and style.css for validation and empty states
+- [x] T016 [US3] Preserve saved expenses after a page refresh by relying on the localStorage-backed initialization flow
 
 **Checkpoint**: All user stories should now be independently functional.
 
@@ -83,6 +83,6 @@
 
 **Purpose**: Final cleanup and validation of the complete experience.
 
-- [ ] T017 [P] Refine the UI copy, spacing, and form layout in index.html and style.css
-- [ ] T018 Verify the app behavior against the quickstart scenarios in specs/001-expense-tracker/quickstart.md
-- [ ] T019 Review the implementation for readability and conformance with the constitution’s small-function guidance
+- [x] T017 [P] Refine the UI copy, spacing, and form layout in index.html and style.css
+- [x] T018 Verify the app behavior against the quickstart scenarios in specs/001-expense-tracker/quickstart.md
+- [x] T019 Review the implementation for readability and conformance with the constitution’s small-function guidance
