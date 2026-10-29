@@ -48,6 +48,13 @@
 
       <section class="panel" aria-labelledby="report-title">
         <h2 id="report-title">Report</h2>
+        <div class="data-actions" aria-label="Expense data actions">
+          <button id="export-csv" type="button">Export CSV</button>
+          <button id="import-csv" type="button" aria-controls="import-file">Import CSV</button>
+          <a id="csv-import-template" class="button-link button-secondary" href="expense-import-template.csv" download="expense-import-template.csv">CSV Import Template</a>
+          <input id="import-file" type="file" accept=".csv,text/csv" aria-label="Select expenses CSV file" hidden />
+          <p id="import-message" class="form-message" role="status" aria-live="polite"></p>
+        </div>
         <div class="summary-card">
           <h3>Summary</h3>
           <p id="summary-copy">Add your first expense to start building your report.</p>
