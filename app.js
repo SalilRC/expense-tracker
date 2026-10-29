@@ -24,6 +24,10 @@ function getElements() {
     formSubmitButton: document.getElementById("expense-submit"),
     formCancelButton: document.getElementById("expense-cancel"),
     formTitle: document.getElementById("expense-form-title"),
+    exportButton: document.getElementById("export-csv"),
+    importButton: document.getElementById("import-csv"),
+    importFileInput: document.getElementById("import-file"),
+    importMessage: document.getElementById("import-message"),
     summaryCopy: document.getElementById("summary-copy"),
     categoryTotals: document.getElementById("category-totals"),
     expenseList: document.getElementById("expense-list"),
@@ -75,6 +79,287 @@ function loadExpenses() {
 
 function saveExpenses() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.expenses));
+}
+
+function escapeCsvField(value) {
+  const field = String(value ?? "");
+  if (/[",\r\n]/.test(field)) {
+    return `"${field.replace(/"/g, '""')}"`;
+  }
+
+  return field;
+}
+
+function serializeExpensesToCsv(expenses) {
+  const header = ["date", "description", "category", "amount"];
+  const rows = expenses.map((expense) => [
+    expense.date,
+    expense.description,
+    expense.category,
+    Number(expense.amount).toFixed(2),
+  ]);
+  const csvRows = [header, ...rows].map((row) => row.map(escapeCsvField).join(","));
+
+  return `\uFEFF${csvRows.join("\r\n")}`;
+}
+
+function parseCsvRecords(csvText) {
+  const text = String(csvText).replace(/^\uFEFF/, "");
+  if (text.length === 0) {
+    throw new Error("The selected CSV file is empty.");
+  }
+
+  const records = [];
+  let record = [];
+  let field = "";
+  let insideQuotedField = false;
+  let afterQuotedField = false;
+
+  function finishField() {
+    record.push(field);
+    field = "";
+    afterQuotedField = false;
+  }
+
+  function finishRecord() {
+    finishField();
+    records.push(record);
+    record = [];
+  }
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+
+    if (insideQuotedField) {
+      if (character === '"') {
+        if (text[index + 1] === '"') {
+          field += '"';
+          index += 1;
+        } else {
+          insideQuotedField = false;
+          afterQuotedField = true;
+        }
+      } else {
+        field += character;
+      }
+      continue;
+    }
+
+    if (afterQuotedField) {
+      if (character === ",") {
+        finishField();
+      } else if (character === "\r" || character === "\n") {
+        finishRecord();
+        if (character === "\r" && text[index + 1] === "\n") {
+          index += 1;
+        }
+      } else {
+        throw new Error("The CSV file contains malformed quoting.");
+      }
+      continue;
+    }
+
+    if (character === '"') {
+      if (field.length > 0) {
+        throw new Error("The CSV file contains malformed quoting.");
+      }
+      insideQuotedField = true;
+    } else if (character === ",") {
+      finishField();
+    } else if (character === "\r" || character === "\n") {
+      finishRecord();
+      if (character === "\r" && text[index + 1] === "\n") {
+        index += 1;
+      }
+    } else {
+      field += character;
+    }
+  }
+
+  if (insideQuotedField) {
+    throw new Error("The CSV file contains an unterminated quoted field.");
+  }
+
+  if (afterQuotedField || field.length > 0 || record.length > 0) {
+    finishRecord();
+  }
+
+  return records;
+}
+
+function normalizeImportedAmount(rawValue) {
+  const amountText = String(rawValue ?? "").trim();
+  const match = /^(\d+)(?:\.(\d+))?$/.exec(amountText);
+  if (!match) {
+    return {
+      amount: null,
+      error: "Amount must use digits with an optional decimal fraction (for example, 42 or 42.50).",
+    };
+  }
+
+  const wholeDigits = match[1].replace(/^0+(?=\d)/, "");
+  const fractionDigits = match[2] || "";
+  if (wholeDigits.length > 6) {
+    return { amount: null, error: "Amount cannot exceed 100000 before rounding." };
+  }
+
+  const wholeAmount = Number(wholeDigits);
+  if (wholeAmount > 100000 || (wholeAmount === 100000 && /[1-9]/.test(fractionDigits))) {
+    return { amount: null, error: "Amount cannot exceed 100000 before rounding." };
+  }
+
+  const cents = Number((fractionDigits + "00").slice(0, 2));
+  const thousandths = Number(fractionDigits[2] || "0");
+  const roundedCents = wholeAmount * 100 + cents + (thousandths >= 5 ? 1 : 0);
+  if (roundedCents === 0 || !Number.isFinite(roundedCents)) {
+    return { amount: null, error: "Amount must round to at least 0.01." };
+  }
+
+  return { amount: roundedCents / 100, error: null };
+}
+
+function getCsvColumnIndexes(headers) {
+  const requiredHeaders = ["date", "description", "category", "amount"];
+  const indexes = {};
+
+  requiredHeaders.forEach((requiredHeader) => {
+    const matchingIndexes = [];
+    headers.forEach((header, index) => {
+      if (header === requiredHeader) {
+        matchingIndexes.push(index);
+      }
+    });
+
+    if (matchingIndexes.length !== 1) {
+      throw new Error(`The CSV header must contain exactly one ${requiredHeader} column.`);
+    }
+
+    indexes[requiredHeader] = matchingIndexes[0];
+  });
+
+  return indexes;
+}
+
+function createImportedExpenseId(expenses) {
+  let suffix = 0;
+  let expenseId = `expense-${Date.now()}-${suffix}`;
+  const existingIds = new Set(expenses.map((expense) => expense.id));
+
+  while (existingIds.has(expenseId)) {
+    suffix += 1;
+    expenseId = `expense-${Date.now()}-${suffix}`;
+  }
+
+  return expenseId;
+}
+
+function createExpenseFromCsvRow(row, columnIndexes, existingExpenses) {
+  const amountResult = normalizeImportedAmount(row[columnIndexes.amount]);
+  const expense = {
+    id: "",
+    date: String(row[columnIndexes.date] ?? "").trim(),
+    description: String(row[columnIndexes.description] ?? "").trim(),
+    category: String(row[columnIndexes.category] ?? "").trim(),
+    amount: amountResult.amount,
+  };
+  const validation = validateExpense(expense);
+  const errors = validation.errors
+    .filter((error) => !error.startsWith("Amount must be a positive number"))
+    .map((error) => error === "Please choose a valid category."
+      ? "Category must exactly match the supported categories (case-sensitive)."
+      : error);
+
+  if (amountResult.error) {
+    errors.push(amountResult.error);
+  }
+
+  if (errors.length > 0) {
+    return { expense: null, errors };
+  }
+
+  expense.id = createImportedExpenseId(existingExpenses);
+  return { expense, errors: [] };
+}
+
+function updateImportMessage(message) {
+  const importMessage = document.getElementById("import-message");
+  if (importMessage) {
+    importMessage.textContent = message;
+  }
+}
+
+async function handleImportFileChange(event) {
+  const elements = getElements();
+  const fileInput = event.target || elements.importFileInput;
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    const records = parseCsvRecords(await file.text());
+    if (records.length === 0) {
+      throw new Error("The CSV file must include a header row.");
+    }
+
+    const columnIndexes = getCsvColumnIndexes(records[0]);
+    const stagedExpenses = [];
+    const skippedReasons = [];
+
+    records.slice(1).forEach((row, index) => {
+      const recordNumber = index + 2;
+      if (row.every((value) => String(value).trim() === "")) {
+        return;
+      }
+
+      if (row.length !== records[0].length) {
+        skippedReasons.push(`CSV record ${recordNumber}: Expected ${records[0].length} fields, found ${row.length}.`);
+        return;
+      }
+
+      const result = createExpenseFromCsvRow(row, columnIndexes, [...state.expenses, ...stagedExpenses]);
+      if (result.expense) {
+        stagedExpenses.push(result.expense);
+      } else {
+        skippedReasons.push(`CSV record ${recordNumber}: ${result.errors.join(" ")}`);
+      }
+    });
+
+    if (stagedExpenses.length > 0) {
+      const nextExpenses = [...state.expenses, ...stagedExpenses];
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextExpenses));
+      } catch (error) {
+        throw new Error("Expenses could not be saved; no imported expenses were added.");
+      }
+
+      state.expenses = nextExpenses;
+      renderApp(elements);
+    }
+
+    const skippedCount = skippedReasons.length;
+    const summary = `Import complete: ${stagedExpenses.length} accepted, ${skippedCount} skipped.`;
+    updateImportMessage(skippedReasons.length > 0 ? `${summary} ${skippedReasons.join(" ")}` : summary);
+  } catch (error) {
+    updateImportMessage(`Import failed: ${error.message}`);
+  } finally {
+    fileInput.value = "";
+  }
+}
+
+function downloadExpensesCsv() {
+  const csv = serializeExpensesToCsv(state.expenses);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const objectUrl = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+
+  downloadLink.href = objectUrl;
+  downloadLink.download = "expenses.csv";
+  downloadLink.hidden = true;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  URL.revokeObjectURL(objectUrl);
 }
 
 function isValidIsoDate(value) {
@@ -384,6 +669,15 @@ function initializeApp() {
   populateCategoryOptions(elements.categorySelect);
   elements.form.addEventListener("submit", handleFormSubmit);
   elements.expenseList.addEventListener("click", handleExpenseListClick);
+
+  if (elements.exportButton) {
+    elements.exportButton.addEventListener("click", downloadExpensesCsv);
+  }
+
+  if (elements.importButton && elements.importFileInput) {
+    elements.importButton.addEventListener("click", () => elements.importFileInput.click());
+    elements.importFileInput.addEventListener("change", handleImportFileChange);
+  }
 
   if (elements.formCancelButton) {
     elements.formCancelButton.addEventListener("click", () => resetExpenseForm(elements));
